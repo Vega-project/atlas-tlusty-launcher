@@ -1,0 +1,17 @@
+Steps are in-order:
+-------------------
+
+# Copy first batch of input data into <synspec_root>/somefolder
+
+cd somefolder
+
+# Data pre-processing - this will modify Atlas12 output into something that Synspec can handle - otherwise it will crash since it is not able to use native output (for SOME reason :-/)
+for i in `ls result*`; do cat $i | sed -r 's/  +/ /g' | sed -e 's/GRAVITY\s\([^ ]*\)\s\(.*\)/GRAVITY  \1   \2/g' | sed 's/READ DECK6 72/READ DECK6 64/g' > $i.fort8format; done # prepare
+
+cd ..
+
+# Edit input file for Synspec t100g80l.5 and adjust Teff and Gravity to match output file that will be processed in next step
+nano t100g80l.5
+
+# Invocation of synspec against pre-processed data - do not forget to include filenames that match TEFF from previous step
+for i in `ls bunch/result.mod*9k*fromscratch.fort8format`; do echo $i; unlink fort.8; ln -s $i fort.8; rm fort.7 -f;./synspec.exe  < t100g80l.5 2>&1>/dev/null; date; echo -e "file $i.synspec done" ;/bin/cp -fr fort.7 $i.synspec; done # runsynspec
